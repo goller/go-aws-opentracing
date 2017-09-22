@@ -1,4 +1,4 @@
-package aws
+package awstracing
 
 import (
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -22,7 +22,6 @@ func WithTracing(aws *client.Client, parent ot.SpanContext, tracer ot.Tracer) *c
 
 // New creates a new TracingHandler that will produce children of parent using tracer
 func New(parent ot.SpanContext, tracer ot.Tracer) *TracingHandler {
-	// TODO: Probably remove parent?
 	return &TracingHandler{
 		parent: parent,
 		tracer: tracer,
