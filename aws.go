@@ -18,6 +18,7 @@ func WithTracing(aws *client.Client, parent ot.SpanContext, tracer ot.Tracer) *c
 	handler := New(parent, tracer)
 	aws.Handlers.Send.PushFront(handler.Before)
 	aws.Handlers.Complete.PushBack(handler.After)
+	return aws
 }
 
 // New creates a new TracingHandler that will produce children of parent using tracer
@@ -41,8 +42,8 @@ func (t *TracingHandler) Before(req *request.Request) {
 
 	t.tracer.Inject(
 		span.Context(),
-		opentracing.HTTPHeaders,
-		opentracing.HTTPHeadersCarrier(req.HTTPRequest.Header),
+		ot.HTTPHeaders,
+		ot.HTTPHeadersCarrier(req.HTTPRequest.Header),
 	)
 
 	ctx := ot.ContextWithSpan(req.Context(), span)
@@ -58,7 +59,7 @@ func (t *TracingHandler) After(req *request.Request) {
 	defer span.Finish()
 	ext.HTTPStatusCode.Set(span, uint16(req.HTTPResponse.StatusCode))
 
-	if ext.Error != nil {
+	if req.Error != nil {
 		ext.Error.Set(span, true)
 		span.LogKV(
 			"event", string(ext.Error),
